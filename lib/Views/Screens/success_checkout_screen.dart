@@ -1,7 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_pharmacy/Constants/constants.dart';
-import 'package:smart_pharmacy/Views/Screens/home_screen.dart';
+import 'package:smart_pharmacy/Views/Screens/homescreen.dart';
 import 'package:smart_pharmacy/Views/Widgets/custom_text.dart';
 
 class SuccessCheckoutScreen extends StatelessWidget {

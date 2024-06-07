@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:smart_pharmacy/Constants/constants.dart';
+import 'package:smart_pharmacy/Core/Helper/cart_helper.dart';
 import 'package:smart_pharmacy/Core/offline%20DataBase/allowed_medicines.dart';
 import 'package:smart_pharmacy/Models/medicine_model.dart';
 import 'package:smart_pharmacy/Views/Screens/checkout_screen.dart';
@@ -14,9 +15,8 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
-   bool _isOption1Selected = true;
-  bool _isOption2Selected = false;
-  
+ 
+
   dialogue() {
     for (var element in myCart) {
       if (element.quantity == 0) {
@@ -36,7 +36,7 @@ class _CartScreenState extends State<CartScreen> {
                     TextButton(
                         onPressed: () {
                           Navigator.pop(context);
-                          
+                          deleteItem(element);
                         },
                         child: const Text('Yes')),
                   ],
@@ -45,16 +45,67 @@ class _CartScreenState extends State<CartScreen> {
     }
   }
 
-  deleteItem(MedicineModel medicineModel){
+  deleteItem(MedicineModel medicineModel)async {
     setState(() {
-          myCart.remove(medicineModel);
+      myCart.remove(medicineModel);
+      priceTotal -= medicineModel.price * medicineModel.quantity;
+    });
+    await CartHelper().deleteCartItem(medicineModel.id!);
+  }
 
+  double calculateTotalPrice() {
+    double total = 0.0;
+    for (final item in myCart) {
+      total += item.price * item.quantity;
+    }
+    return total;
+  }
+
+  void decreaseQuantity(int index) {
+    if (myCart[index].quantity > 0) {
+      setState(() {
+        myCart[index].quantity--;
+        totalDiscount =
+            calculateTotalDiscount(); 
+        priceTotal = calculateTotalPrice(); 
+        if (myCart[index].quantity == 0) {
+          dialogue(); 
+        }
+      });
+
+    }
+  }
+
+  double calculateTotalDiscount() {
+    double discount = 0.0;
+    
+    return discount;
+  }
+
+  void increaseQuantity(int index) {
+    setState(() {
+      myCart[index].quantity++;
+      totalDiscount = calculateTotalDiscount(); 
+      priceTotal = calculateTotalPrice(); 
     });
   }
 
   @override
+void initState() {
+  super.initState();
+  _fetchCartItems();
+}
+
+Future<void> _fetchCartItems() async {
+  final cartItems = await CartHelper().getCartItems();
+  
+  setState(() {
+    // myCart = cartItems; // Update your `myCart` state with fetched items
+  });
+}
+
+  @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
       appBar: AppBar(
         title: CustomText(
@@ -66,7 +117,7 @@ class _CartScreenState extends State<CartScreen> {
         child: myCart.isEmpty
             ? Center(child: Image.asset('images/emptycart.png'))
             : SingleChildScrollView(
-              child: Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(
@@ -106,7 +157,8 @@ class _CartScreenState extends State<CartScreen> {
                             child: Card(
                               color: Colors.white,
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Padding(
                                     padding: const EdgeInsets.all(8.0),
@@ -148,28 +200,20 @@ class _CartScreenState extends State<CartScreen> {
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: SelectorCart(
-                                          text: myCart[index].quantity.toString(),
-                                          decrease: () {
-                                            if (myCart[index].quantity > 0)
-                                              setState(() {
-                                                myCart[index].quantity -= 1;
-                                                for (var item in myCart) {
-                    priceTotal -= item.price * item.quantity;
-                  }
-                                              });
-                                            if (myCart[index].quantity == 0) {
-                                              dialogue();
+                                            text: myCart[index]
+                                                .quantity
+                                                .toString(),
+                                            decrease: () {
+                                              //
+                                              decreaseQuantity(index);
                                             }
-                                          },
-                                          incrrease: () {
-                                            setState(() {
-                                              myCart[index].quantity += 1;
-                                              for (var item in myCart) {
-                    priceTotal += item.price * item.quantity;
-                  }
-                                            });
-                                          },
-                                        ),
+                    
+                                            //
+                                            ,
+                                            incrrease: () {
+                                              //
+                                              increaseQuantity(index);
+                                            }),
                                       ),
                                     ],
                                   )
@@ -188,75 +232,109 @@ class _CartScreenState extends State<CartScreen> {
                             color: Colors.black87,
                           ),
                           Padding(
-                            padding: const EdgeInsets.only(top: 20,left: 30,right: 20),
+                            padding: const EdgeInsets.only(
+                                top: 20, left: 30, right: 20),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                CustomText(text: 'Order Total',color: Colors.grey,),
+                                CustomText(
+                                  text: 'Order Total',
+                                  color: Colors.grey,
+                                ),
                                 CustomText(text: '${priceTotal}')
                               ],
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.only(top: 20,left: 30,right: 20),
+                            padding: const EdgeInsets.only(
+                                top: 20, left: 30, right: 20),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                CustomText(text: 'Items Discount',color: Colors.grey,),
-                                CustomText(text: '-28.80')
+                                CustomText(
+                                  text: 'Items Discount',
+                                  color: Colors.grey,
+                                ),
+                                CustomText(text: '0.0')
                               ],
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.only(top: 20,left: 30,right: 20),
+                            padding: const EdgeInsets.only(
+                                top: 20, left: 30, right: 20),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                CustomText(text: 'coupon Discount',color: Colors.grey,),
-                                CustomText(text: '-15.80')
+                                CustomText(
+                                  text: 'coupon Discount',
+                                  color: Colors.grey,
+                                ),
+                                CustomText(text: '0.0')
                               ],
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.only(top: 20,left: 30,right: 20),
+                            padding: const EdgeInsets.only(
+                                top: 20, left: 30, right: 20),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                CustomText(text: 'Shipping',color: Colors.grey,),
+                                CustomText(
+                                  text: 'Shipping',
+                                  color: Colors.grey,
+                                ),
                                 CustomText(text: 'Free')
                               ],
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.only(top: 20,left: 30,right: 20),
+                            padding: const EdgeInsets.only(
+                                top: 20, left: 30, right: 20),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                CustomText(text: 'Total',fontWeight: FontWeight.bold,),
-                                CustomText(text: '${priceTotal}LE',fontWeight: FontWeight.bold,)
+                                CustomText(
+                                  text: 'Total',
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                CustomText(
+                                  text: '${priceTotal}LE',
+                                  fontWeight: FontWeight.bold,
+                                )
                               ],
                             ),
                           ),
-                           Padding(
-                             padding: const EdgeInsets.all(25.0),
-                             child: ElevatedButton(
-                              onPressed: (){
-                             Navigator.push(context,  MaterialPageRoute(builder: (context)=>CheckOutScreen()));
-                              },
-                              style: ElevatedButton.styleFrom(
-                                  shape: LinearBorder(), backgroundColor:greenColor,
-                                  foregroundColor: Colors.white,
-                                  fixedSize: Size(MediaQuery.of(context).size.width*.80, MediaQuery.of(context).size.height*.072)),
-                              child: CustomText(text: 
-                                 'Place Order',color: Colors.white,fontSize: 21,fontWeight: FontWeight.bold,
-                              )),
-                           ),
+                          Padding(
+                            padding: const EdgeInsets.all(25.0),
+                            child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              CheckOutScreen()));
+                                },
+                                style: ElevatedButton.styleFrom(
+                                    shape: LinearBorder(),
+                                    backgroundColor: greenColor,
+                                    foregroundColor: Colors.white,
+                                    fixedSize: Size(
+                                        MediaQuery.of(context).size.width * .80,
+                                        MediaQuery.of(context).size.height *
+                                            .072)),
+                                child: CustomText(
+                                  text: 'Place Order',
+                                  color: Colors.white,
+                                  fontSize: 21,
+                                  fontWeight: FontWeight.bold,
+                                )),
+                          ),
                         ],
                       ),
                     )
                   ],
                 ),
-            ),
+              ),
       ),
     );
   }

@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:email_validator/email_validator.dart';
+
 
 class CustomFormField extends StatelessWidget {
   final String hintText;
-  const CustomFormField({super.key, required this.hintText});
+  final TextEditingController controller ;
+  final bool isEmail; 
+  final String? Function(String?)? validator; 
+  const CustomFormField({
+    super.key, 
+    required this.hintText,
+     required this.controller,
+     this.isEmail=false,
+     this.validator});
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +30,7 @@ class CustomFormField extends StatelessWidget {
         ],
       ),
       child: TextFormField(
+        controller: controller,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(12, 12, 12, 12),
           border: OutlineInputBorder(
@@ -34,7 +45,16 @@ class CustomFormField extends StatelessWidget {
           fillColor: Colors.white,
           filled: true,
         ),
+        validator: (value) {
+          if (isEmail && value!.isEmpty) {
+            return 'Please enter your email address.';
+          } else if (isEmail && !EmailValidator.validate(value!)) {
+            return 'Please enter a valid email address.';
+          } else if (validator != null) {
+            return validator!(value); 
+          }
+          return null; 
+        },
       ),
-    );
-  }
+    );}
 }

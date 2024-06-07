@@ -1,21 +1,28 @@
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:smart_pharmacy/Models/medicine_model.dart';
 
-List<MedicineModel>allowedMedicines=[
-  MedicineModel(name: 'congestal', price: 19.00),
-    MedicineModel(name: 'panadol', price: 9.00,couponDiscount: 10.00,haveDiscount: true),
-  MedicineModel(name: 'comtrics', price: 16.00),
-  MedicineModel(name: 'voltarine', price: 19.00),
-  MedicineModel(name: 'concor', price: 19.00),
-  MedicineModel(name: 'bronchkim', price: 19.00),
-  MedicineModel(name: 'asophortine', price: 19.00),
-  MedicineModel(name: 'sugar free gold', price: 25.00),
 
 
 
-];
+List<MedicineModel> medicines = [];
+
+final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+Future<List<MedicineModel>> getMedicines() async {
+  final snapshot = await firestore.collection('allowed_medicines').get();
+ 
+  final medicineslist =await snapshot.docs.map((doc) => MedicineModel.fromMap(doc.data())).toList();
+    
+  medicines=medicineslist;
+  print(medicines);
+  return medicineslist ;
+
+}
 
 List<MedicineModel>myCart=[];
   double priceTotal=0.0 ;
+  double totalDiscount =0.0 ;
+  
 
  late List<MedicineModel?>filteredList ;

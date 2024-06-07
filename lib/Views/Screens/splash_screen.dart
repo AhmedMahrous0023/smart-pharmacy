@@ -1,9 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:smart_pharmacy/Constants/constants.dart';
 import 'package:smart_pharmacy/Views/Screens/login_screen.dart';
-import 'package:smart_pharmacy/Views/Widgets/custom_button.dart';
 import 'package:smart_pharmacy/Views/Widgets/custom_text.dart';
 
 class SplashScreen extends StatelessWidget {
