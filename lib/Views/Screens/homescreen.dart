@@ -1,8 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_pharmacy/Core/Helper/cart_helper.dart';
+import 'package:smart_pharmacy/Core/Service/auth_service.dart';
 import 'package:smart_pharmacy/Core/offline%20DataBase/allowed_medicines.dart';
 import 'package:smart_pharmacy/Models/medicine_model.dart';
 import 'package:smart_pharmacy/Views/Screens/cart_screen.dart';
+import 'package:smart_pharmacy/Views/Screens/login_screen.dart';
 import 'package:smart_pharmacy/Views/Widgets/custom_text.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -59,15 +62,24 @@ class _HomeScreenState extends State<HomeScreen> {
     return total;
   }
 
+  String _userEmail = '';
+  String _userName = '';
+
+  @override
+  void initState() {
+    super.initState();
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      _userEmail = user.email!;
+      _userName = user.displayName ?? ''; // Use default if not provided
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Colors.grey[200],
         appBar: AppBar(
-          leading: Padding(
-            padding: const EdgeInsets.only(left: 20),
-            child: Icon(Icons.menu),
-          ),
           centerTitle: true,
           title: Container(
             width: MediaQuery.of(context).size.width * .60,
@@ -100,6 +112,69 @@ class _HomeScreenState extends State<HomeScreen> {
               width: MediaQuery.of(context).size.width * .05,
             )
           ],
+        ),
+        drawer: Drawer(
+          elevation: 5,
+          width: MediaQuery.of(context).size.width * .50,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+              border: Border.all(width: 3, color: Colors.green),color: Colors.white
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Card(
+                    color: Color.fromARGB(255, 193, 183, 208),
+                    child: Padding(
+                      padding: const EdgeInsets.all(6.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CustomText(
+                            text: 'We',
+                            color: Colors.blue,
+                          ),
+                          CustomText(
+                            text: 'lc',
+                            color: Colors.amber,
+                          ),
+                          CustomText(text: 'ome'),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 48,
+                      backgroundImage:
+                          AssetImage('images/person-placeholder.jpg'),
+                    ),
+                    CustomText(text: ' $_userName',color: Colors.indigo,fontWeight: FontWeight.w800,),
+                    CustomText(text:'Email: $_userEmail',fontSize: 14,color: Colors.indigo,),
+                  ],
+                ),
+                Card(
+                  color: Colors.blueGrey,
+                  child: TextButton(
+                    child: CustomText(text: 'Sign Out',color: Colors.white,),
+                    onPressed: () async {
+                      await AuthService.signOut();
+                      Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => LoginScreen()),
+                          (route) => false);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
         body: Container(
           child: SingleChildScrollView(

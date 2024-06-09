@@ -50,7 +50,10 @@ class _CartScreenState extends State<CartScreen> {
       myCart.remove(medicineModel);
       priceTotal -= medicineModel.price * medicineModel.quantity;
     });
+    if (medicineModel.id!=null){
     await CartHelper().deleteCartItem(medicineModel.id!);
+
+    }
   }
 
   double calculateTotalPrice() {
@@ -149,6 +152,7 @@ Future<void> _fetchCartItems() async {
                       ],
                     ),
                     ListView.builder(
+                      physics: NeverScrollableScrollPhysics(),
                         shrinkWrap: true,
                         itemCount: myCart.length,
                         itemBuilder: (context, index) {

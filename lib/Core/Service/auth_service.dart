@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -13,11 +14,17 @@ class AuthService {
         email: email,
         password: password,
       );
-      final User user = await auth.currentUser!; // Get the current user
+      final User user = await auth.currentUser!; 
       await user.updateProfile(
-          displayName: fullName); // Update display name with full name
+          displayName: fullName); 
+          final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-      print('User created and profile updated successfully!');
+          await _firestore.collection('users').doc(user.uid).set({
+      'email': email,
+      'name': fullName,
+    });
+
+      print('User created and profile updated , and data saved successfully !');
       return true;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
@@ -64,14 +71,27 @@ class AuthService {
       return null;
     }
   }
-   static Future<void> saveUserLogin(bool isLoggedIn) async {
+
+  static Future<void> saveUserLogin(bool isLoggedIn) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isLoggedIn', isLoggedIn);
   }
 
   static Future<bool> isUserLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
-    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false; // Default to false if not found
+    final isLoggedIn =
+        prefs.getBool('isLoggedIn') ?? false; // Default to false if not found
     return isLoggedIn;
+  }
+
+  static Future<void> signOut() async {
+    try {
+      final FirebaseAuth auth = FirebaseAuth.instance;
+      await auth.signOut();
+      await saveUserLogin(false);
+      print('User signed out successfully!');
+    } catch (e) {
+      print('Error signing out: $e');
+    }
   }
 }
